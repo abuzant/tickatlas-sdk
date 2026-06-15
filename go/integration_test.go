@@ -20,6 +20,15 @@ import (
 	"time"
 )
 
+// Captured at package-init time — before TestMain (client_test.go) unsets the
+// ambient env for unit-test hermeticity. Integration tests are compiled into the
+// same test binary as the unit tests, so without this capture the live
+// credentials would be wiped by the time these tests run.
+var (
+	integAPIKey  = os.Getenv(EnvAPIKey)
+	integBaseURL = os.Getenv(EnvBaseURL)
+)
+
 // integrationClient builds a live client or skips the test if the gating
 // environment is not present.
 func integrationClient(t *testing.T) *Client {
@@ -27,10 +36,14 @@ func integrationClient(t *testing.T) *Client {
 	if os.Getenv("RUN_INTEGRATION") != "1" {
 		t.Skip("integration tests disabled: set RUN_INTEGRATION=1 to enable")
 	}
-	if os.Getenv(EnvAPIKey) == "" {
+	if integAPIKey == "" {
 		t.Skip("integration tests require " + EnvAPIKey)
 	}
-	c, err := NewClient(WithTimeout(20 * time.Second))
+	opts := []Option{WithAPIKey(integAPIKey), WithTimeout(20 * time.Second)}
+	if integBaseURL != "" {
+		opts = append(opts, WithBaseURL(integBaseURL))
+	}
+	c, err := NewClient(opts...)
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
