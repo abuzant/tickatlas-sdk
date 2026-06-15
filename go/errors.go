@@ -191,8 +191,7 @@ func IsNetwork(err error) bool {
 }
 
 // IsAPIError reports whether err is (or wraps) any structured server error
-// ([*APIError] or one of its subtypes). When it returns true the pointer out
-// parameter, if non-nil, is populated with the embedded [*APIError].
+// ([*APIError] or one of its subtypes).
 func IsAPIError(err error) bool {
 	_, ok := asAPIError(err)
 	return ok

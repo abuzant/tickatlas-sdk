@@ -188,7 +188,7 @@ func TestTicks(t *testing.T) {
 
 func TestIndicator(t *testing.T) {
 	c, _ := testClient(t, func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, 200, `{"success":true,"data":{"symbol":"EURUSD","timeframe":"H1","indicator":"RSI_14","value":58.34,"bid":1.0831,"ask":1.0832,"updated_at":1711548000,"server_time":"2026-03-27T14:00:00"}}`)
+		writeJSON(w, 200, `{"success":true,"data":{"symbol":"EURUSD","timeframe":"H1","indicator":"RSI_14","value":58.34,"bid":1.0831,"ask":1.0832,"updated_at":1711548000,"server_time":"2026.06.15 21:38:54"}}`)
 	})
 	res, err := c.Indicator(ctx(), "EURUSD", RSI14, &IndicatorParams{Timeframe: TimeframeH1})
 	if err != nil {
@@ -200,7 +200,10 @@ func TestIndicator(t *testing.T) {
 	if res.UpdatedAt != 1711548000 {
 		t.Errorf("updated_at = %d", res.UpdatedAt)
 	}
-	if res.ServerTime == nil || *res.ServerTime != "2026-03-27T14:00:00" {
+	// server_time is the dotted, space-separated broker-local form the live API
+	// emits (e.g. "2026.06.15 21:38:54"), NOT ISO 8601. The field is a string;
+	// the SDK passes it through verbatim.
+	if res.ServerTime == nil || *res.ServerTime != "2026.06.15 21:38:54" {
 		t.Errorf("server_time = %v", res.ServerTime)
 	}
 }
@@ -466,7 +469,7 @@ func TestCalendar(t *testing.T) {
 	var gotQuery string
 	c, _ := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		gotQuery = r.URL.RawQuery
-		writeJSON(w, 200, `{"success":true,"data":{"events":[{"id":"evt1","datetime":"2026-06-15T12:30:00","currency":"USD","event":"CPI","impact":"high","forecast":"3.1%","previous":"3.0%","actual":null}],"count":1,"pagination":{"offset":0,"limit":100,"total":1,"has_more":false},"range":{"from":"2026-06-15T00:00:00","to":"2026-06-22T00:00:00"}}}`)
+		writeJSON(w, 200, `{"success":true,"data":{"events":[{"id":"evt1","datetime":"2026-06-15T22:45:00+00:00","currency":"USD","event":"CPI","impact":"high","forecast":"3.1%","previous":"3.0%","actual":null}],"count":1,"pagination":{"offset":0,"limit":100,"total":1,"has_more":false},"range":{"from":"2026-06-15T18:38:34.037156+00:00","to":"2026-06-22T18:38:34.037156+00:00"}}}`)
 	})
 	res, err := c.Calendar(ctx(), &CalendarParams{Currencies: "USD,EUR", Impact: ImpactHigh, Limit: ptrInt(100)})
 	if err != nil {
@@ -478,9 +481,18 @@ func TestCalendar(t *testing.T) {
 	if res.Events[0].Actual != nil {
 		t.Error("actual should be null")
 	}
-	// Datetime is naive UTC, no Z suffix (F18).
-	if res.Events[0].Datetime != "2026-06-15T12:30:00" {
+	// Event datetime is the offset form the live API emits (e.g.
+	// "2026-06-15T22:45:00+00:00") — NOT a naive timestamp without a suffix. The
+	// field is a string; the SDK passes it through verbatim.
+	if res.Events[0].Datetime != "2026-06-15T22:45:00+00:00" {
 		t.Errorf("datetime = %q", res.Events[0].Datetime)
+	}
+	// range.from/range.to carry an offset plus microseconds in the live response.
+	if res.Range.From != "2026-06-15T18:38:34.037156+00:00" {
+		t.Errorf("range.from = %q", res.Range.From)
+	}
+	if res.Range.To != "2026-06-22T18:38:34.037156+00:00" {
+		t.Errorf("range.to = %q", res.Range.To)
 	}
 	if !contains(gotQuery, "currencies=USD%2CEUR") || !contains(gotQuery, "impact=high") {
 		t.Errorf("query = %q", gotQuery)
@@ -567,6 +579,44 @@ func TestSaveLayout(t *testing.T) {
 	}
 	if !res.Saved {
 		t.Error("saved should be true")
+	}
+}
+
+// TestSaveLayout_RejectsNonArray verifies the client-side guard: a non-slice,
+// non-array body is rejected with a *ValidationError before any request is sent.
+func TestSaveLayout_RejectsNonArray(t *testing.T) {
+	var serverHit bool
+	c, _ := testClient(t, func(w http.ResponseWriter, r *http.Request) {
+		serverHit = true
+		writeJSON(w, 200, `{"success":true,"data":{"saved":true}}`)
+	})
+
+	bad := []any{
+		map[string]string{"widget": "chart"}, // object, not array
+		"not-an-array",                       // string
+		42,                                   // number
+		nil,                                  // nil interface
+	}
+	for _, body := range bad {
+		res, err := c.SaveLayout(ctx(), body)
+		if err == nil {
+			t.Errorf("SaveLayout(%T) = nil error, want validation error", body)
+			continue
+		}
+		if !IsValidation(err) {
+			t.Errorf("SaveLayout(%T): want *ValidationError, got %v", body, err)
+		}
+		if res != nil {
+			t.Errorf("SaveLayout(%T): result should be nil on error", body)
+		}
+	}
+	if serverHit {
+		t.Error("server must not be reached for an invalid layout body")
+	}
+
+	// A slice still succeeds (also exercised by TestSaveLayout for the wire path).
+	if _, err := c.SaveLayout(ctx(), []map[string]string{{"widget": "chart"}}); err != nil {
+		t.Errorf("valid slice layout should succeed, got %v", err)
 	}
 }
 

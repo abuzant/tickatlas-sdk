@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -427,9 +428,17 @@ func (c *Client) Layout(ctx context.Context) (*LayoutResult, error) {
 // SaveLayout saves the dashboard layout. PUT /monitor/layout.
 //
 // This is an advanced, write operation: it mutates the user's saved dashboard
-// layout (max 60 widgets). layout should marshal to a JSON array. Most callers
-// will not need this method.
+// layout (max 60 widgets). layout must be a slice or array (it is sent as the
+// JSON "layout" array); anything else is rejected client-side with a
+// [*ValidationError] before any request is made. Most callers will not need
+// this method.
 func (c *Client) SaveLayout(ctx context.Context, layout any) (*SaveLayoutResult, error) {
+	if k := reflect.ValueOf(layout).Kind(); k != reflect.Slice && k != reflect.Array {
+		return nil, &ValidationError{APIError{
+			Code:    "INVALID_LAYOUT",
+			Message: "tickatlas: SaveLayout requires layout to be a slice or array",
+		}}
+	}
 	body := map[string]any{"layout": layout}
 	var out SaveLayoutResult
 	if err := c.do(ctx, request{method: http.MethodPut, path: "/monitor/layout", body: body}, &out); err != nil {

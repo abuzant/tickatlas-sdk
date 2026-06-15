@@ -225,6 +225,77 @@ func TestRetryOn429ThenSuccess(t *testing.T) {
 	}
 }
 
+// TestNoRetryWhenRetryAfterExceedsCap verifies that a 429 advising a Retry-After
+// longer than backoffCap (e.g. QUOTA_EXCEEDED with Retry-After: 3600) is
+// surfaced immediately rather than retried — the SDK must not sleep for an hour
+// or storm the server with capped-delay retries.
+func TestNoRetryWhenRetryAfterExceedsCap(t *testing.T) {
+	var calls int32
+	var slept bool
+	c, _ := testClient(t, func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&calls, 1)
+		w.Header().Set("Retry-After", "3600")
+		writeJSON(w, 429, `{"success":false,"error":{"code":"QUOTA_EXCEEDED","message":"daily quota exhausted","reset_in_seconds":3600}}`)
+	})
+	// maxRetries stays at the default (3); the fix must short-circuit regardless.
+	c.sleep = func(ctx context.Context, d time.Duration) error {
+		slept = true
+		return nil
+	}
+
+	_, err := c.Quote(ctx(), "EURUSD", nil)
+	if !IsRateLimit(err) {
+		t.Fatalf("want IsRateLimit, got %v", err)
+	}
+	var rle *RateLimitError
+	if !errors.As(err, &rle) {
+		t.Fatal("not a *RateLimitError")
+	}
+	if rle.RetryAfter != 3600*time.Second {
+		t.Errorf("RetryAfter = %v, want 1h", rle.RetryAfter)
+	}
+	if got := atomic.LoadInt32(&calls); got != 1 {
+		t.Errorf("calls = %d, want 1 (no retry for over-cap Retry-After)", got)
+	}
+	if slept {
+		t.Error("must not sleep when Retry-After exceeds backoffCap")
+	}
+}
+
+// TestRetryWhenRetryAfterWithinCap verifies a 429 with a Retry-After at or below
+// backoffCap is still retried and the server-advised delay is honoured verbatim.
+func TestRetryWhenRetryAfterWithinCap(t *testing.T) {
+	var calls int32
+	var sleptFor time.Duration
+	c, _ := testClient(t, func(w http.ResponseWriter, r *http.Request) {
+		n := atomic.AddInt32(&calls, 1)
+		if n == 1 {
+			w.Header().Set("Retry-After", "30") // == backoffCap
+			writeJSON(w, 429, `{"success":false,"error":{"code":"RATE_LIMIT_EXCEEDED","message":"slow"}}`)
+			return
+		}
+		writeJSON(w, 200, `{"success":true,"data":{"symbol":"EURUSD","bid":1.1,"ask":1.2,"spread":1,"spread_pips":1,"timestamp":"t"}}`)
+	})
+	c.sleep = func(ctx context.Context, d time.Duration) error {
+		sleptFor = d
+		return nil
+	}
+
+	res, err := c.Quote(ctx(), "EURUSD", nil)
+	if err != nil {
+		t.Fatalf("expected success after retry, got %v", err)
+	}
+	if res.Bid == nil || *res.Bid != 1.1 {
+		t.Errorf("bid = %v", res.Bid)
+	}
+	if got := atomic.LoadInt32(&calls); got != 2 {
+		t.Errorf("calls = %d, want 2", got)
+	}
+	if sleptFor != backoffCap {
+		t.Errorf("backoff = %v, want %v (Retry-After honoured, not capped down)", sleptFor, backoffCap)
+	}
+}
+
 // TestRetryOn500 verifies 5xx is retried.
 func TestRetryOn500(t *testing.T) {
 	var calls int32

@@ -240,6 +240,16 @@ func (c *Client) do(ctx context.Context, req request, out any) error {
 			return nil
 		}
 
+		// A rate-limit error whose server-advised Retry-After exceeds the backoff
+		// cap (for example QUOTA_EXCEEDED with Retry-After: 3600) is not worth
+		// retrying: sleeping for an hour inside the SDK is wrong, and capping the
+		// delay to backoffCap would just trigger a pointless retry storm. Surface
+		// the *RateLimitError immediately so the caller decides what to do.
+		var rle *RateLimitError
+		if errors.As(decodeErr, &rle) && rle.RetryAfter > backoffCap {
+			return decodeErr
+		}
+
 		if isRetryable(decodeErr) && attempt < c.maxRetries {
 			lastErr = decodeErr
 			continue
@@ -394,14 +404,13 @@ func numberFrom(v any) (float64, bool) {
 }
 
 // backoffDelay computes the delay before the given retry. For rate-limit errors
-// it honours the server-advised Retry-After; otherwise it uses exponential
-// backoff with full jitter: min(cap, base * 2^attempt) * rand.
+// it honours the server-advised Retry-After verbatim (a Retry-After larger than
+// backoffCap is not capped here — do() stops retrying such errors outright
+// rather than sleeping for it); otherwise it uses exponential backoff with full
+// jitter: min(cap, base * 2^attempt) * rand.
 func (c *Client) backoffDelay(attempt int, lastErr error) time.Duration {
 	var rle *RateLimitError
 	if errors.As(lastErr, &rle) && rle.RetryAfter > 0 {
-		if rle.RetryAfter > backoffCap {
-			return backoffCap
-		}
 		return rle.RetryAfter
 	}
 
