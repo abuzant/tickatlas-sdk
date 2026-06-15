@@ -538,8 +538,10 @@ All **21** `/v1` API-key endpoints above are implemented in every SDK (Python,
 JS/TS, PHP, Go) and exposed as MCP tools / skill capabilities in `tickatlas-skills`.
 The only deliberately-gated surface is the **write** half of `PUT /monitor/layout`,
 which is implemented as a callable method but excluded from automated write-path
-integration testing (it would overwrite a real user's saved layout). Infra probes
-(`/health`, `/status`, `/ready`) are included as convenience client methods.
+integration testing (it would overwrite a real user's saved layout). The `/health`
+probe is exposed as a convenience method (`health()` / `get_health`); `/status` and
+`/ready` live at the same origin and are documented but not wrapped (point the
+client's base URL at the origin to reach them if needed).
 
 No public `/v1` endpoint is omitted.
 
