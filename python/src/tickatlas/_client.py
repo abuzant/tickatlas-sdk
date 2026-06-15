@@ -119,7 +119,8 @@ class TickAtlas(_ClientBase):
 
     # -- core request loop --------------------------------------------------
     def _request(self, spec: RequestSpec) -> Any:
-        url = f"{self.base_url}{spec.path}"
+        base = self.origin if spec.root else self.base_url
+        url = f"{base}{spec.path}"
         headers = self._default_headers()
         params = _clean_params(spec.params)
 
@@ -155,7 +156,7 @@ class TickAtlas(_ClientBase):
             if is_network_error:
                 raise self._wrap_network_error(network_exc)
             assert response is not None
-            return self._parse_response(response)
+            return self._parse_response(response, raw=spec.raw)
 
     def _run(self, plan: ep.Plan[T]) -> T:
         spec, parser = plan
@@ -405,7 +406,8 @@ class AsyncTickAtlas(_ClientBase):
 
     # -- core request loop --------------------------------------------------
     async def _request(self, spec: RequestSpec) -> Any:
-        url = f"{self.base_url}{spec.path}"
+        base = self.origin if spec.root else self.base_url
+        url = f"{base}{spec.path}"
         headers = self._default_headers()
         params = _clean_params(spec.params)
 
@@ -441,7 +443,7 @@ class AsyncTickAtlas(_ClientBase):
             if is_network_error:
                 raise self._wrap_network_error(network_exc)
             assert response is not None
-            return self._parse_response(response)
+            return self._parse_response(response, raw=spec.raw)
 
     async def _run(self, plan: ep.Plan[T]) -> T:
         spec, parser = plan

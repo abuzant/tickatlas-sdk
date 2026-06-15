@@ -192,7 +192,7 @@ func TestHealthIsAuthless(t *testing.T) {
 		if r.Header.Get("X-API-Key") != "" {
 			sawKey = true
 		}
-		writeJSON(w, 200, `{"status":"ok","components":{"redis":"ok","postgres":"ok"}}`)
+		writeJSON(w, 200, `{"status":"ok","components":{"redis":{"status":"ok"},"postgres":{"status":"ok"}}}`)
 	})
 	res, err := c.Health(context.Background())
 	if err != nil {
@@ -201,7 +201,7 @@ func TestHealthIsAuthless(t *testing.T) {
 	if sawKey {
 		t.Error("health probe should not send X-API-Key")
 	}
-	if res.Status != "ok" || res.Components.Redis != "ok" {
+	if res.Status != "ok" || res.Components["redis"].Status != "ok" {
 		t.Errorf("unexpected health result: %+v", res)
 	}
 	if len(res.Raw) == 0 {

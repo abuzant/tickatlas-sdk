@@ -494,6 +494,7 @@ export class TickAtlas {
     return request<HealthData>(this.config, {
       method: "GET",
       path: "/health",
+      root: true,
     });
   }
 }

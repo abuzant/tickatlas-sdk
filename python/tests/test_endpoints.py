@@ -460,10 +460,11 @@ def test_get_layout_null():
 # --------------------------------------------------------------------------
 def test_health():
     res, req = run(HEALTH_DATA, lambda c: c.health())
-    assert req.url.path == "/v1/health"
+    # The health probe lives at the API origin, not under the /v1 prefix.
+    assert req.url.path == "/health"
     assert isinstance(res, tickatlas.Health)
     assert res.status == "ok"
-    assert res.components == {"redis": "ok", "postgres": "ok"}
+    assert res.components == {"redis": {"status": "ok"}, "postgres": {"status": "ok"}}
 
 
 # --------------------------------------------------------------------------

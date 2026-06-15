@@ -472,7 +472,7 @@ final class Client
      */
     public function health(): Health
     {
-        return Health::fromArray($this->http->get('/health'));
+        return Health::fromArray($this->http->getRoot('/health'));
     }
 
     // =====================================================================

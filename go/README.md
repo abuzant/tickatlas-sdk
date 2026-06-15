@@ -267,7 +267,7 @@ _ = layout
 
 ```go
 h, _ := client.Health(ctx)
-fmt.Println(h.Status, h.Components.Redis, h.Components.Postgres)
+fmt.Println(h.Status, h.Components["redis"].Status, h.Components["postgres"].Status)
 ```
 
 ### Write: SaveLayout (advanced)

@@ -520,10 +520,15 @@ Errors via envelope: `HTTP_400` ("layout must be an array" / "Too many widgets
 **SDKs SHOULD expose this but document it as advanced/optional** (it mutates the
 user's dashboard). It is excluded from the automated integration write-path tests.
 
-### Infrastructure probes (no API key)
+### Infrastructure probes (no API key) — served at the API **origin**, not under `/v1`
 
-`GET /health` → `{ status, components: { redis, postgres } }` · `GET /status` ·
-`GET /ready` (note: `/ready` is proxied at the edge after a 2026-06-15 fix).
+These live at the host root (e.g. `https://tickatlas.com/health`), need no key, and
+are **not** wrapped in the `{success, data}` envelope — SDKs resolve them against the
+origin (scheme+host) and return the body verbatim.
+
+`GET /health` → `{ "status": "ok", "components": { "redis": { "status": "ok" }, "postgres": { "status": "ok" } } }`
+(each component is a nested status **object**, not a string) · `GET /status` ·
+`GET /ready` (proxied at the edge after a 2026-06-15 fix).
 
 ---
 
@@ -592,6 +597,7 @@ column.** These are also useful pre-launch fixes for the TickAtlas docs team.
 | F17 | `monitor/account` fields | (task brief expected email/rate_limit/monthly) | only `name, plan, prepaid_credits, daily_quota, daily_used` | live |
 | F18 | Calendar timestamps | trailing `Z` | naive UTC, **no** suffix (treat as UTC) | live |
 | F19 | Datetime error codes (`indicator-history.md`) | `INVALID_FROM_TIME`/`FROM_TIME_TOO_OLD` | `INVALID_DATETIME` / `OUTSIDE_RETENTION` | live |
+| F20 | `/health` (verified live 2026-06-15) | implied `/v1/health`, `components` as `{redis, postgres}` strings | served at **origin** `/health` (not `/v1`), **no** envelope, `components` are nested `{status}` objects | origin + nested + envelope-bypass |
 
 > All of the above were **functionally healthy** in the live test (no 5xx; every
 > happy path returned `200` with the correct envelope). The findings are docs

@@ -446,7 +446,7 @@ func (c *Client) SaveLayout(ctx context.Context, layout any) (*SaveLayoutResult,
 // and not wrapped in the success/data envelope.
 func (c *Client) Health(ctx context.Context) (*HealthResult, error) {
 	var out HealthResult
-	if err := c.do(ctx, request{method: http.MethodGet, path: "/health", authless: true}, &out); err != nil {
+	if err := c.do(ctx, request{method: http.MethodGet, path: "/health", authless: true, root: true}, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil

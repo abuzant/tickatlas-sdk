@@ -80,6 +80,19 @@ final class HttpClient
     }
 
     /**
+     * Perform a GET against the API origin (scheme+host) rather than the
+     * versioned base URL — for root probes like /health.
+     *
+     * @param array<string, mixed> $query
+     *
+     * @return array<int|string, mixed>
+     */
+    public function getRoot(string $path, array $query = []): array
+    {
+        return $this->request('GET', $path, $query, null, true);
+    }
+
+    /**
      * Perform a POST with a JSON body and return the unwrapped `data` payload.
      *
      * @param array<string, mixed> $body
@@ -111,9 +124,9 @@ final class HttpClient
      *
      * @return array<int|string, mixed>
      */
-    private function request(string $method, string $path, array $query, ?array $body): array
+    private function request(string $method, string $path, array $query, ?array $body, bool $root = false): array
     {
-        $url = $this->buildUrl($path, $query);
+        $url = $this->buildUrl($path, $query, $root);
         $request = $this->buildRequest($method, $url, $body);
 
         $attempt = 0;
@@ -340,9 +353,24 @@ final class HttpClient
     /**
      * @param array<string, mixed> $query
      */
-    private function buildUrl(string $path, array $query): string
+    /**
+     * The API origin (scheme://host[:port]) derived from the base URL — used
+     * for root probes like /health that are not under the /v1 prefix.
+     */
+    private function origin(): string
     {
-        $url = $this->baseUrl . '/' . ltrim($path, '/');
+        $p = parse_url($this->baseUrl);
+        $scheme = $p['scheme'] ?? 'https';
+        $host = $p['host'] ?? '';
+        $port = isset($p['port']) ? ':' . $p['port'] : '';
+
+        return $scheme . '://' . $host . $port;
+    }
+
+    private function buildUrl(string $path, array $query, bool $root = false): string
+    {
+        $base = $root ? $this->origin() : $this->baseUrl;
+        $url = $base . '/' . ltrim($path, '/');
 
         $normalised = $this->normaliseQuery($query);
         if ($normalised !== []) {

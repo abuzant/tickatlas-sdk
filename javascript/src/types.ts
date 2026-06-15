@@ -608,13 +608,15 @@ export interface SaveLayoutData {
 // Infra probe: GET /health
 // ---------------------------------------------------------------------------
 
+export interface HealthComponent {
+  status?: string;
+  [key: string]: unknown;
+}
+
 export interface HealthData {
   status: string;
-  components: {
-    redis?: string;
-    postgres?: string;
-    [component: string]: unknown;
-  };
+  /** Per-dependency status, e.g. `{ redis: { status: "ok" }, postgres: {...} }`. */
+  components: Record<string, HealthComponent>;
   [key: string]: unknown;
 }
 

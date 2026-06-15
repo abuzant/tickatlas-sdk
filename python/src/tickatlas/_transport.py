@@ -47,6 +47,13 @@ class RequestSpec:
     path: str
     params: Optional[Dict[str, Any]] = None
     json: Optional[Any] = None
+    # When True, the path is resolved against the API origin (scheme+host)
+    # instead of the versioned base URL. Used for root probes like /health,
+    # which live at https://tickatlas.com/health, not /v1/health.
+    root: bool = False
+    # When True, the 2xx body is returned as-is rather than unwrapped from the
+    # {"success", "data"} envelope. Root probes like /health return a bare object.
+    raw: bool = False
 
 
 def _clean_params(params: Optional[Mapping[str, Any]]) -> Optional[Dict[str, Any]]:
@@ -108,6 +115,14 @@ class BaseTransport:
         # Default rng is module-level random; injectable for deterministic tests.
         self._rng: RngFn = rng if rng is not None else random.random
 
+    @property
+    def origin(self) -> str:
+        """Scheme+host of the base URL, for root-level probes like ``/health``."""
+        from urllib.parse import urlsplit
+
+        parts = urlsplit(self.base_url)
+        return f"{parts.scheme}://{parts.netloc}"
+
     # -- header construction ------------------------------------------------
     def _default_headers(self) -> Dict[str, str]:
         return {
@@ -165,12 +180,15 @@ class BaseTransport:
         return False
 
     # -- response parsing (pure, shared) ------------------------------------
-    def _parse_response(self, response: httpx.Response) -> Any:
+    def _parse_response(self, response: httpx.Response, raw: bool = False) -> Any:
         """Validate the envelope and return the unwrapped ``data`` payload.
 
         Returns the ``data`` value from the success envelope (a dict for every
         documented endpoint). Raises the appropriate typed exception on any
         non-2xx response or malformed body.
+
+        When ``raw`` is True (root probes like ``/health``), a 2xx body is
+        returned as-is — those endpoints are not wrapped in the envelope.
         """
         request_id = response.headers.get("X-Request-ID")
         status = response.status_code
@@ -180,6 +198,13 @@ class BaseTransport:
             body = response.json()
         except ValueError:  # invalid / empty JSON (json.JSONDecodeError subclasses this)
             body = None
+
+        if raw and 200 <= status < 300:
+            # Root probes (e.g. /health) return a bare object; tolerate an
+            # enveloped body too (test mocks / forward-compat).
+            if isinstance(body, dict) and body.get("success") is True and "data" in body:
+                return body.get("data")
+            return body
 
         if 200 <= status < 300:
             if isinstance(body, dict) and body.get("success") is True:

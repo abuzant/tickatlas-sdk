@@ -34,6 +34,12 @@ export interface RequestOptions {
   path: string;
   query?: QueryParams;
   body?: unknown;
+  /**
+   * When true, resolve `path` against the API origin (scheme+host) instead of
+   * the versioned base URL. Used for root probes like `/health`, which live at
+   * `https://tickatlas.com/health`, not `/v1/health`.
+   */
+  root?: boolean;
   /** Per-request timeout override (ms). */
   timeout?: number;
   /** Per-request signal to allow caller-driven cancellation. */
@@ -149,7 +155,10 @@ export async function request<T>(
   config: TransportConfig,
   opts: RequestOptions,
 ): Promise<T> {
-  const url = config.baseURL.replace(/\/+$/, "") + opts.path + buildQueryString(opts.query);
+  const base = opts.root
+    ? new URL(config.baseURL).origin
+    : config.baseURL.replace(/\/+$/, "");
+  const url = base + opts.path + buildQueryString(opts.query);
   const maxAttempts = config.maxRetries + 1;
 
   let lastError: unknown;

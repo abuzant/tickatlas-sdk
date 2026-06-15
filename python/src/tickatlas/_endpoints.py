@@ -359,5 +359,5 @@ def save_layout(layout: List[Any]) -> Plan[m.LayoutSaveResult]:
 # Infra
 # --------------------------------------------------------------------------
 def health() -> Plan[m.Health]:
-    spec = RequestSpec("GET", "/health")
+    spec = RequestSpec("GET", "/health", root=True, raw=True)
     return spec, m.Health.from_dict

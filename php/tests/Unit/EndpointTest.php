@@ -756,15 +756,15 @@ final class EndpointTest extends TestCase
 
     public function testHealth(): void
     {
-        $payload = ['status' => 'ok', 'components' => ['redis' => 'up', 'postgres' => 'up']];
+        $payload = ['status' => 'ok', 'components' => ['redis' => ['status' => 'up'], 'postgres' => ['status' => 'up']]];
         $f = MockClientFactory::create([MockClientFactory::success($payload)]);
 
         $result = $f->client->health();
 
         self::assertInstanceOf(Health::class, $result);
         self::assertSame('ok', $result->status);
-        self::assertSame('up', $result->components['redis']);
-        self::assertSame('/v1/health', $this->path($f));
+        self::assertSame('up', $result->components['redis']['status']);
+        self::assertSame('/health', $this->path($f));
     }
 
     // ---- cross-cutting: auth header + user agent + forward-compat ----

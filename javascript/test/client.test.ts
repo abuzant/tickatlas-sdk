@@ -60,11 +60,21 @@ describe("configuration", () => {
 
   it("uses TICKATLAS_BASE_URL env then the production default", async () => {
     vi.stubEnv("TICKATLAS_BASE_URL", "https://staging.test/v1");
-    const { client, fetchMock } = makeClient([ok({ status: "ok" })], {
-      baseURL: undefined,
-    });
-    await client.health();
-    expect(urlOf(fetchMock)).toBe("https://staging.test/v1/health");
+    const { client, fetchMock } = makeClient(
+      [
+        ok({
+          current_time: "t",
+          active_sessions: [],
+          sessions: {},
+          overlaps: [],
+          next_major_event: null,
+        }),
+      ],
+      { baseURL: undefined },
+    );
+    // A regular /v1 endpoint must honour the configured base URL (incl. /v1).
+    await client.getSessions();
+    expect(urlOf(fetchMock)).toBe("https://staging.test/v1/sessions");
   });
 
   it("sends the X-API-Key header and a JSON Accept", async () => {
@@ -606,12 +616,16 @@ describe("endpoints — success parsing", () => {
   });
 
   it("health parses the infra probe", async () => {
-    const data = { status: "ok", components: { redis: "up", postgres: "up" } };
+    const data = {
+      status: "ok",
+      components: { redis: { status: "up" }, postgres: { status: "up" } },
+    };
     const { client, fetchMock } = makeClient([ok(data)]);
     const res = await client.health();
     expect(res.status).toBe("ok");
-    expect(res.components.redis).toBe("up");
-    expect(urlOf(fetchMock)).toBe("https://api.test/v1/health");
+    expect(res.components.redis.status).toBe("up");
+    // Root probe: resolved against the origin, not the /v1 base.
+    expect(urlOf(fetchMock)).toBe("https://api.test/health");
   });
 });
 

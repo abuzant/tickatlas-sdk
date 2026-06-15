@@ -366,7 +366,7 @@ LAYOUT_SAVE_DATA: Dict[str, Any] = {"saved": True}
 
 HEALTH_DATA: Dict[str, Any] = {
     "status": "ok",
-    "components": {"redis": "ok", "postgres": "ok"},
+    "components": {"redis": {"status": "ok"}, "postgres": {"status": "ok"}},
 }
 
 

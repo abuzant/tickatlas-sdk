@@ -474,11 +474,14 @@ type SaveLayoutResult struct {
 	Saved bool `json:"saved"`
 }
 
-// HealthComponents is the per-component status block in a [HealthResult].
-type HealthComponents struct {
-	Redis    string `json:"redis"`
-	Postgres string `json:"postgres"`
+// ComponentHealth is one dependency's status within a [HealthResult].
+type ComponentHealth struct {
+	Status string `json:"status"`
 }
+
+// HealthComponents maps each dependency name (e.g. "redis", "postgres") to its
+// status. The /health probe reports each component as a nested status object.
+type HealthComponents map[string]ComponentHealth
 
 // HealthResult is the body of GET /health. The health probe is not wrapped in
 // the success/data envelope.

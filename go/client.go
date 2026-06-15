@@ -165,6 +165,10 @@ type request struct {
 	body any
 	// authless skips the X-API-Key header (used for infra probes).
 	authless bool
+	// root resolves path against the API origin (scheme+host) instead of the
+	// versioned base URL — for root probes like /health, which live at
+	// https://tickatlas.com/health, not /v1/health.
+	root bool
 }
 
 // do executes req with retries and decodes the success envelope's data block
@@ -180,7 +184,13 @@ func (c *Client) do(ctx context.Context, req request, out any) error {
 		bodyBytes = b
 	}
 
-	fullURL := c.baseURL + req.path
+	base := c.baseURL
+	if req.root {
+		if u, err := url.Parse(c.baseURL); err == nil && u.Host != "" {
+			base = u.Scheme + "://" + u.Host
+		}
+	}
+	fullURL := base + req.path
 	if len(req.query) > 0 {
 		fullURL += "?" + req.query.Encode()
 	}
