@@ -158,6 +158,13 @@ def test_get_quotes_accepts_csv_string():
     assert body == {"symbols": ["EURUSD", "GBPUSD"]}
 
 
+def test_get_quotes_drops_empty_symbols():
+    # A trailing/duplicate comma must not POST empty symbols (FIX 3).
+    _, req = run(BULK_QUOTES_DATA, lambda c: c.get_quotes("EURUSD,,GBPUSD, "))
+    body = json.loads(req.content)
+    assert body == {"symbols": ["EURUSD", "GBPUSD"]}
+
+
 # --------------------------------------------------------------------------
 # 7.5 / 7.6 ohlc + ticks
 # --------------------------------------------------------------------------
@@ -271,6 +278,17 @@ def test_get_multi_realtime():
     assert res.is_historical is False
     assert res.data["EURUSD"]["RSI_14"] == 58.34
     assert res.not_found is None
+
+
+def test_get_multi_csv_string_drops_empty_items():
+    # _csv must drop empty items from a bare comma-separated string (FIX 3).
+    _, req = run(
+        MULTI_REALTIME_DATA,
+        lambda c: c.get_multi("EURUSD,,GBPUSD,", "RSI_14, ,MACD_hist", timeframe="H1"),
+    )
+    params = qp(req)
+    assert params["symbols"] == "EURUSD,GBPUSD"
+    assert params["indicators"] == "RSI_14,MACD_hist"
 
 
 def test_get_multi_historical():
@@ -465,6 +483,29 @@ def test_health():
     assert isinstance(res, tickatlas.Health)
     assert res.status == "ok"
     assert res.components == {"redis": {"status": "ok"}, "postgres": {"status": "ok"}}
+
+
+def test_health_bare_body_parses_like_enveloped():
+    """The real /health returns a BARE body (no {success,data} envelope).
+
+    Feed health() the bare body directly (skipping conftest's ``envelope``) so the
+    production envelope-bypass code path is exercised, and assert it parses to the
+    same model as the enveloped form does.
+    """
+    bare_handler = single_response(200, HEALTH_DATA, {"X-Request-ID": "bare1"})
+    bare_client = make_sync_client(bare_handler)
+    try:
+        bare = bare_client.health()
+    finally:
+        bare_client.close()
+
+    enveloped, _ = run(HEALTH_DATA, lambda c: c.health())
+
+    assert isinstance(bare, tickatlas.Health)
+    assert bare.status == "ok"
+    assert bare.components == {"redis": {"status": "ok"}, "postgres": {"status": "ok"}}
+    # Bare and enveloped bodies must parse identically.
+    assert bare == enveloped
 
 
 # --------------------------------------------------------------------------

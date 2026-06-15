@@ -34,11 +34,11 @@ def _s(value: Optional[StrLike]) -> Optional[str]:
 def _csv(values: Union[str, Iterable[Any]]) -> str:
     """Join a list of symbols/indicators into the comma-separated form the API wants.
 
-    A bare string is passed through unchanged (already comma-separated).
+    A bare string is re-split on commas so empty items (e.g. a trailing comma in
+    ``"EURUSD,"``) are dropped just like the iterable form.
     """
-    if isinstance(values, str):
-        return values
-    return ",".join(str(v) for v in values)
+    items: Iterable[Any] = values.split(",") if isinstance(values, str) else values
+    return ",".join(s for s in (str(v).strip() for v in items) if s)
 
 
 # --------------------------------------------------------------------------
@@ -92,11 +92,8 @@ def get_quotes(
     symbols: Union[str, Iterable[str]],
     fields: Optional[Iterable[str]] = None,
 ) -> Plan[m.BulkQuotes]:
-    sym_list: List[str] = (
-        [s.strip() for s in symbols.split(",")]
-        if isinstance(symbols, str)
-        else [str(s) for s in symbols]
-    )
+    raw_syms: Iterable[str] = symbols.split(",") if isinstance(symbols, str) else symbols
+    sym_list: List[str] = [s for s in (str(x).strip() for x in raw_syms) if s]
     body: Dict[str, Any] = {"symbols": sym_list}
     if fields is not None:
         body["fields"] = list(fields)

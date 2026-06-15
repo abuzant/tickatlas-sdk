@@ -124,6 +124,25 @@ def test_volume_coerced_to_int():
     assert isinstance(c.volume, int)
 
 
+def test_heatmap_correlation_matrix_null_cell_becomes_none():
+    # A null correlation cell must coerce to None, not raise TypeError (FIX 1).
+    hm = m.Heatmap.from_dict(
+        {
+            "type": "correlation",
+            "timeframe": "H4",
+            "correlation_matrix": {
+                "USD": {"USD": 1.0, "EUR": None},
+                "EUR": {"USD": None, "EUR": 1.0},
+            },
+            "available": True,
+        }
+    )
+    assert hm.correlation_matrix is not None
+    assert hm.correlation_matrix["USD"]["USD"] == 1.0
+    assert hm.correlation_matrix["USD"]["EUR"] is None
+    assert hm.correlation_matrix["EUR"]["USD"] is None
+
+
 def test_multi_is_historical_property():
     rt = m.MultiIndicators.from_dict({"timeframe": "H1", "data": {}, "not_found": None})
     assert rt.is_historical is False

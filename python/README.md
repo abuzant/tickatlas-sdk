@@ -373,4 +373,4 @@ RUN_INTEGRATION=1 TICKATLAS_API_KEY="claw_..." pytest tests/test_integration.py
 
 ## License
 
-MIT — see [LICENSE](../LICENSE).
+MIT — see [LICENSE](LICENSE).

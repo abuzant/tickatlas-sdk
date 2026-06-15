@@ -835,7 +835,7 @@ class Heatmap:
     weakest: Optional[str] = None
     range: Optional[float] = None
     # correlation mode
-    correlation_matrix: Optional[Dict[str, Dict[str, float]]] = None
+    correlation_matrix: Optional[Dict[str, Dict[str, Optional[float]]]] = None
     available: Optional[bool] = None
     message: Optional[str] = None
     raw: Dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
@@ -843,10 +843,10 @@ class Heatmap:
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "Heatmap":
         matrix_raw = d.get("correlation_matrix")
-        matrix: Optional[Dict[str, Dict[str, float]]] = None
+        matrix: Optional[Dict[str, Dict[str, Optional[float]]]] = None
         if isinstance(matrix_raw, dict):
             matrix = {
-                k: {kk: float(vv) for kk, vv in (v or {}).items()}
+                k: {kk: _f(vv) for kk, vv in (v or {}).items()}
                 for k, v in matrix_raw.items()
             }
         return cls(
