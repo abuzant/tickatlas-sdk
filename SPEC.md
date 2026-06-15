@@ -38,11 +38,11 @@ staging deployments, defaulting to the production URL above.
 Authenticate **every** request with an API key in the `X-API-Key` header:
 
 ```
-X-API-Key: claw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+X-API-Key: tk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-- Keys are opaque strings. Current keys are prefixed `claw_`; legacy keys exist
-  and are also accepted. SDKs MUST treat the key as an opaque string — never parse
+- Keys are opaque strings. New keys are prefixed `tk_`; pre-rebrand `claw_` keys
+  remain valid (legacy) and are also accepted. SDKs MUST treat the key as an opaque string — never parse
   or validate its format client-side.
 - The key is read, in priority order, from: (1) an explicit constructor argument,
   then (2) the environment variable **`TICKATLAS_API_KEY`**.
@@ -402,7 +402,7 @@ historical: `403 PLAN_UPGRADE_REQUIRED`, `404 INDICATOR_NOT_FOUND`, the date err
 | Param | Type | Req | Default | Notes |
 |-------|------|-----|---------|-------|
 | `indicator` | string | **yes** | — | |
-| `timeframe` | string | no | `H1` | (not validated server-side) |
+| `timeframe` | string | no | `H1` | validated; bad value → `400 INVALID_TIMEFRAME` |
 | `min_val` | number | no | — | inclusive lower bound (**not** `min`) |
 | `max_val` | number | no | — | inclusive upper bound (**not** `max`) |
 | `sort` | string | no | `asc` | `asc` or `desc` |
@@ -412,7 +412,7 @@ historical: `403 PLAN_UPGRADE_REQUIRED`, `404 INDICATOR_NOT_FOUND`, the date err
 `data`: `{ indicator, timeframe, filter: { min: number|null, max: number|null },
 results: { symbol: str, value: number|null, bid: number|null }[],
 total_matches: int, pagination: { offset, limit, total, has_more }, updated_at: int }`
-Errors: `400 INVALID_SORT`.
+Errors: `400 INVALID_SORT`, `400 INVALID_TIMEFRAME` (timeframe now validated, consistent with the other indicator endpoints).
 
 ### 7.13 `GET /summary` — market-bias summary · scope: `indicators`
 
@@ -469,7 +469,7 @@ in: str } | null }`.
 |-------|------|-----|---------|-------|
 | `type` | string | no | `strength` | `strength` or `correlation` |
 | `timeframe` | string | no | `H4` | `H1`/`H4`/`D1`/`W1` |
-| `correlations` | bool | no | — | `true` forces correlation mode |
+| `correlations` | bool | no | — | `true` forces correlation mode; **takes precedence over `type`** |
 
 Strength `data`: `{ type:"strength", timeframe, currencies: { <CCY>: { strength:
 number(0..10), trend: "bullish"|"bearish"|"neutral", change: number,
@@ -494,7 +494,7 @@ Errors: `400 INVALID_TYPE`, `400 INVALID_TIMEFRAME`.
 | `offset` | int | no | `0` | `≥ 0` |
 | `limit` | int | no | `100` | `1..500` |
 
-`data`: `{ events: { id: str, datetime: str(ISO, naive-UTC, no suffix),
+`data`: `{ events: { id: str, datetime: str(ISO 8601, `+00:00` UTC offset),
 currency: str, event: str, impact: str, forecast: str|null, previous: str|null,
 actual: str|null }[], count: int, pagination: { offset, limit, total, has_more },
 range: { from: str, to: str } }`
@@ -597,7 +597,7 @@ column.** These are also useful pre-launch fixes for the TickAtlas docs team.
 | F15 | `/spread/compare` | undocumented | exists; params/shape per §7.15 | implemented |
 | F16 | `/monitor/*` | (was) undocumented | `account`,`layout` (GET/PUT) exist; shapes per §7.19–21 | implemented |
 | F17 | `monitor/account` fields | (task brief expected email/rate_limit/monthly) | only `name, plan, prepaid_credits, daily_quota, daily_used` | live |
-| F18 | Calendar timestamps | trailing `Z` | naive UTC, **no** suffix (treat as UTC) | live |
+| F18 | Calendar timestamps | trailing `Z` | ISO 8601 with **`+00:00`** UTC offset (verified live 2026-06-15) | live |
 | F19 | Datetime error codes (`indicator-history.md`) | `INVALID_FROM_TIME`/`FROM_TIME_TOO_OLD` | `INVALID_DATETIME` / `OUTSIDE_RETENTION` | live |
 | F20 | `/health` (verified live 2026-06-15) | implied `/v1/health`, `components` as `{redis, postgres}` strings | served at **origin** `/health` (not `/v1`), **no** envelope, `components` are nested `{status}` objects | origin + nested + envelope-bypass |
 
