@@ -45,4 +45,6 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
-      - run: pytest -q -m integration
+      # The integration suite self-gates on RUN_INTEGRATION + TICKATLAS_API_KEY
+      # (pytest skipif), so running the full suite here exercises the live API.
+      - run: pytest -q
