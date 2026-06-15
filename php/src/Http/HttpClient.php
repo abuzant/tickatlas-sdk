@@ -312,8 +312,20 @@ final class HttpClient
     {
         $value = $this->header($response, 'Retry-After');
 
-        if ($value !== null && is_numeric($value)) {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_numeric($value)) {
             return (int) $value;
+        }
+
+        // Per RFC 7231, Retry-After may be an HTTP-date instead of a delay in
+        // seconds. Parse it and express the wait as seconds from now (never
+        // negative); fall back to no header if it can't be parsed.
+        $timestamp = strtotime($value);
+        if ($timestamp !== false) {
+            return max(0, $timestamp - time());
         }
 
         return null;
@@ -350,9 +362,6 @@ final class HttpClient
         return new Request($method, $url, $headers, $payload);
     }
 
-    /**
-     * @param array<string, mixed> $query
-     */
     /**
      * The API origin (scheme://host[:port]) derived from the base URL — used
      * for root probes like /health that are not under the /v1 prefix.

@@ -417,6 +417,22 @@ final class EndpointTest extends TestCase
         self::assertStringContainsString('indicators=RSI_14,SMA_20', $q);
     }
 
+    public function testGetMultiEmptyListsAreDropped(): void
+    {
+        $payload = [
+            'timeframe' => 'H1', 'data' => [], 'not_found' => null, 'updated_at' => 1,
+        ];
+        $f = MockClientFactory::create([MockClientFactory::success($payload)]);
+
+        $f->client->getMulti([], [], ['timeframe' => 'H1']);
+
+        // Empty list params must be omitted entirely, not sent as `symbols=`.
+        $q = $this->query($f);
+        self::assertStringNotContainsString('symbols=', $q);
+        self::assertStringNotContainsString('indicators=', $q);
+        self::assertStringContainsString('timeframe=H1', $q);
+    }
+
     public function testGetMultiHistorical(): void
     {
         $payload = [
@@ -565,6 +581,20 @@ final class EndpointTest extends TestCase
 
         self::assertSame('/v1/spread/compare', $this->path($f));
         self::assertStringContainsString('symbols=EURUSD', urldecode($this->query($f)));
+    }
+
+    public function testCompareSpreadEmptyListIsDropped(): void
+    {
+        $payload = ['period' => '24h', 'symbols' => [], 'count' => 0];
+        $f = MockClientFactory::create([MockClientFactory::success($payload)]);
+
+        $f->client->compareSpread([], '24h');
+
+        // compareSpread does not call filter(); a null from joinList([]) must
+        // still be dropped by the transport's query normaliser.
+        $q = $this->query($f);
+        self::assertStringNotContainsString('symbols=', $q);
+        self::assertStringContainsString('period=24h', $q);
     }
 
     // ---- 7.16 GET /sessions ----

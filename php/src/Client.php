@@ -510,7 +510,8 @@ final class Client
 
     /**
      * Join a comma-separated list param. Accepts a plain string (passed through),
-     * a list (of strings/enums) joined on commas, or null.
+     * a list (of strings/enums) joined on commas, or null. An empty array yields
+     * null so {@see self::filter()} drops the param rather than emitting `key=`.
      */
     private static function joinList(mixed $value): ?string
     {
@@ -519,6 +520,10 @@ final class Client
         }
 
         if (is_array($value)) {
+            if ($value === []) {
+                return null;
+            }
+
             $parts = array_map(static fn (mixed $v): string => self::enumValue($v) ?? '', $value);
 
             return implode(',', $parts);

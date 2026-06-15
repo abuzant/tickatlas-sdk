@@ -62,6 +62,57 @@ final class RetryTest extends TestCase
         self::assertSame([5.0], $f->sleeper->sleeps);
     }
 
+    public function test429HonoursHttpDateRetryAfter(): void
+    {
+        // RFC 7231 allows Retry-After to be an HTTP-date rather than a delay in
+        // seconds. The client must convert it to seconds-from-now.
+        $delta = 120;
+        $httpDate = gmdate('D, d M Y H:i:s \G\M\T', time() + $delta);
+
+        $f = MockClientFactory::create([
+            MockClientFactory::error(429, 'RATE_LIMIT_EXCEEDED', 'slow', [], ['Retry-After' => $httpDate]),
+            MockClientFactory::success(['status' => 'ok', 'components' => []]),
+        ]);
+
+        $f->client->health();
+
+        self::assertCount(1, $f->sleeper->sleeps);
+        // Allow a small tolerance for the seconds that tick by during the call.
+        self::assertEqualsWithDelta((float) $delta, $f->sleeper->sleeps[0], 2.0);
+    }
+
+    public function test429HttpDateInThePastSleepsZero(): void
+    {
+        // An HTTP-date already in the past must clamp to 0, not a negative wait.
+        $httpDate = gmdate('D, d M Y H:i:s \G\M\T', time() - 60);
+
+        $f = MockClientFactory::create([
+            MockClientFactory::error(429, 'RATE_LIMIT_EXCEEDED', 'slow', [], ['Retry-After' => $httpDate]),
+            MockClientFactory::success(['status' => 'ok', 'components' => []]),
+        ]);
+
+        $f->client->health();
+
+        self::assertSame([0.0], $f->sleeper->sleeps);
+    }
+
+    public function test429UnparseableRetryAfterFallsBackToBackoff(): void
+    {
+        // A non-numeric, non-date Retry-After must fall back to computed backoff
+        // rather than throwing. backoffBase=0.01, backoffCap=0.05 (see factory),
+        // full-jitter => (0, 0.01].
+        $f = MockClientFactory::create([
+            MockClientFactory::error(429, 'RATE_LIMIT_EXCEEDED', 'slow', [], ['Retry-After' => 'soon']),
+            MockClientFactory::success(['status' => 'ok', 'components' => []]),
+        ]);
+
+        $f->client->health();
+
+        self::assertCount(1, $f->sleeper->sleeps);
+        self::assertGreaterThanOrEqual(0.0, $f->sleeper->sleeps[0]);
+        self::assertLessThanOrEqual(0.01, $f->sleeper->sleeps[0]);
+    }
+
     public function test5xxIsRetried(): void
     {
         $f = MockClientFactory::create([
