@@ -1,0 +1,24 @@
+# The `files` whitelist in package.json is authoritative; this is belt-and-braces.
+# Exclude everything that is not the built package or its docs.
+
+src/
+test/
+node_modules/
+*.tsbuildinfo
+
+# Config / tooling
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+.editorconfig
+.eslintrc*
+.prettierrc*
+.github/
+
+# Source maps are large; ship JS + d.ts only.
+dist/*.map
+
+# Misc
+.DS_Store
+*.log
+coverage/

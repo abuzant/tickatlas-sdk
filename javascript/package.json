@@ -1,0 +1,71 @@
+{
+  "name": "tickatlas",
+  "version": "0.1.0",
+  "description": "Official JavaScript/TypeScript SDK for the TickAtlas market-data API (forex, metals, indices, crypto: quotes, OHLC, ticks, 42 technical indicators, screener, economic calendar).",
+  "type": "module",
+  "license": "MIT",
+  "author": "TickAtlas",
+  "homepage": "https://tickatlas.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tickatlas/tickatlas-sdk.git",
+    "directory": "javascript"
+  },
+  "bugs": {
+    "url": "https://github.com/tickatlas/tickatlas-sdk/issues"
+  },
+  "keywords": [
+    "tickatlas",
+    "forex",
+    "trading",
+    "market-data",
+    "quotes",
+    "ohlc",
+    "ticks",
+    "technical-indicators",
+    "rsi",
+    "macd",
+    "economic-calendar",
+    "finance",
+    "fintech",
+    "sdk",
+    "api-client",
+    "typescript"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "RUN_INTEGRATION=1 vitest run test/integration.test.ts",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
