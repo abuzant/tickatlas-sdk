@@ -15,9 +15,6 @@ vitest.config.ts
 .prettierrc*
 .github/
 
-# Source maps are large; ship JS + d.ts only.
-dist/*.map
-
 # Misc
 .DS_Store
 *.log

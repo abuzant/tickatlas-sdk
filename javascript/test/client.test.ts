@@ -627,6 +627,25 @@ describe("endpoints — success parsing", () => {
     // Root probe: resolved against the origin, not the /v1 base.
     expect(urlOf(fetchMock)).toBe("https://api.test/health");
   });
+
+  it("health parses a RAW (non-enveloped) body — the real /health shape", async () => {
+    // The live /health endpoint returns a BARE object (no {success,data}
+    // envelope), so this exercises the unwrapped-body branch in http.ts.
+    const raw = {
+      status: "ok",
+      components: {
+        redis: { status: "ok" },
+        postgres: { status: "ok" },
+      },
+    };
+    const { client, fetchMock } = makeClient([{ status: 200, json: raw }]);
+    const res = await client.health();
+    expect(res.status).toBe("ok");
+    expect(res.components.redis.status).toBe("ok");
+    // No `data` key was present, yet the bare object is handed back verbatim.
+    expect(res).toEqual(raw);
+    expect(urlOf(fetchMock)).toBe("https://api.test/health");
+  });
 });
 
 // ===========================================================================
@@ -776,6 +795,57 @@ describe("error mapping", () => {
       expect(e).toBeInstanceOf(NotFoundError);
       expect((e as NotFoundError).code).toBe("HTTP_404");
     }
+  });
+
+  it("maps 429 QUOTA_EXCEEDED → RateLimitError with retryAfter (SPEC §5)", async () => {
+    // SPEC §5: a quota breach returns 429 with Retry-After: 3600.
+    const { client, fetchMock } = makeClient(
+      [
+        err(429, "QUOTA_EXCEEDED", "Daily quota exhausted", {}, {
+          "Retry-After": "3600",
+        }),
+      ],
+      { maxRetries: 0 },
+    );
+    try {
+      await client.getQuote("EURUSD");
+      expect.unreachable();
+    } catch (e) {
+      expect(e).toBeInstanceOf(RateLimitError);
+      const re = e as RateLimitError;
+      expect(re.statusCode).toBe(429);
+      expect(re.code).toBe("QUOTA_EXCEEDED");
+      expect(re.retryAfter).toBe(3600);
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("maps 405 / HTTP_405 → ValidationError", async () => {
+    // A 405 with no recognised error.code synthesises HTTP_405; any other 4xx
+    // is treated as a client/validation-class error.
+    const { client } = makeClient([{ status: 405, text: "Method Not Allowed" }]);
+    try {
+      await client.getSymbol("X");
+      expect.unreachable();
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      const ve = e as ValidationError;
+      expect(ve.statusCode).toBe(405);
+      expect(ve.code).toBe("HTTP_405");
+    }
+  });
+
+  it("429 with no Retry-After/X-RateLimit-Reset uses body reset_in_seconds", async () => {
+    // No rate-limit headers at all; the delay must fall back to the body's
+    // `reset_in_seconds` (4s → 4000ms) rather than computed backoff.
+    const { client, fetchMock, sleeps } = makeClient([
+      err(429, "RATE_LIMIT_EXCEEDED", "slow down", { reset_in_seconds: 4 }),
+      ok({ status: "ok" }),
+    ]);
+    const res = await client.health();
+    expect(res).toEqual({ status: "ok" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(sleeps).toEqual([4000]);
   });
 });
 
