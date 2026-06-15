@@ -1,0 +1,53 @@
+# ─── Secrets / environment (never commit) ───────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+secrets.*
+
+# ─── OS / editors ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# ─── Logs ────────────────────────────────────────────────────────────────
+*.log
+
+# ─── Python (python/) ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ─── Node / TypeScript (javascript/) ─────────────────────────────────────
+node_modules/
+javascript/dist/
+*.tsbuildinfo
+.npm/
+npm-debug.log*
+
+# ─── PHP (php/) ──────────────────────────────────────────────────────────
+vendor/
+composer.lock
+.phpunit.result.cache
+.phpunit.cache/
+
+# ─── Go (go/) ────────────────────────────────────────────────────────────
+*.test
+*.out
+go/bin/

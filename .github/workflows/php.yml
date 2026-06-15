@@ -1,0 +1,47 @@
+name: php
+
+on:
+  push:
+    paths: ["php/**", ".github/workflows/php.yml"]
+  pull_request:
+    paths: ["php/**", ".github/workflows/php.yml"]
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: php
+
+jobs:
+  test:
+    name: unit (php ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.1", "8.2", "8.3"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, json
+          coverage: none
+      - run: composer install --prefer-dist --no-progress
+      - run: composer test
+
+  integration:
+    name: integration (live API)
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'workflow_dispatch'
+    env:
+      RUN_INTEGRATION: "1"
+      TICKATLAS_API_KEY: ${{ secrets.TICKATLAS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, json
+      - run: composer install --prefer-dist --no-progress
+      - run: vendor/bin/phpunit --testsuite integration
