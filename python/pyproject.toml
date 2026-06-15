@@ -1,0 +1,81 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tickatlas"
+version = "0.1.0"
+description = "Official Python SDK for the TickAtlas market-data API (forex, metals, indices, crypto, indicators, calendar)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "TickAtlas", email = "support@tickatlas.com" }]
+keywords = [
+    "tickatlas",
+    "forex",
+    "trading",
+    "market-data",
+    "quotes",
+    "ohlc",
+    "indicators",
+    "technical-analysis",
+    "economic-calendar",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Typing :: Typed",
+]
+dependencies = ["httpx>=0.23,<1"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "respx>=0.20",
+    "mypy>=1.0",
+]
+
+[project.urls]
+Homepage = "https://tickatlas.com"
+Documentation = "https://tickatlas.com/docs"
+Repository = "https://github.com/tickatlas/tickatlas-sdk"
+Changelog = "https://github.com/tickatlas/tickatlas-sdk/blob/main/python/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/tickatlas/tickatlas-sdk/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tickatlas"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/tickatlas",
+    "tests",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["error"]
+
+[tool.mypy]
+# The SDK supports Python 3.9+ at runtime; this only sets the type-checker's
+# baseline (kept at the lowest version the installed mypy accepts).
+python_version = "3.10"
+strict = true
+warn_unused_configs = true
+files = ["src/tickatlas"]
