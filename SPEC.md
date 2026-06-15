@@ -578,6 +578,15 @@ API surface bump the SDK minor version pre-1.0.
 Recorded during contract extraction; **the SDKs follow the live/implementation
 column.** These are also useful pre-launch fixes for the TickAtlas docs team.
 
+> **Status — RESOLVED 2026-06-15.** The published docs (`docs/api/*`) and the Astro
+> site (`public-folder/`) have been reconciled to match the live API for every row
+> below (F1–F20); a live guard (`tests/docs-reconciliation/`) now enforces it. F18
+> was additionally corrected here: calendar timestamps are ISO 8601 with a
+> **`+00:00`** offset (verified live), not naive/no-suffix. Two contract items were
+> also actioned on the API side: screener now validates `timeframe` (§7.12) and new
+> keys mint `tk_` with `claw_` kept valid (§2). SDKs unchanged — they already
+> followed the live column.
+
 | # | Area | Published docs say | Live API actually does | SDK follows |
 |---|------|--------------------|------------------------|-------------|
 | F1 | Error envelope (`error-codes.md`) | flat `{error, code, details}`, code `RATE_LIMITED` | nested `{success,error:{code,message,…}}`, code `RATE_LIMIT_EXCEEDED` | nested |
