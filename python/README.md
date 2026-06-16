@@ -40,10 +40,10 @@ If neither is present, the client raises `TickAtlasConfigError`.
 from tickatlas import TickAtlas
 
 # Explicit:
-client = TickAtlas(api_key="claw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+client = TickAtlas(api_key="tk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 
 # Or from the environment (recommended — never hardcode keys):
-#   export TICKATLAS_API_KEY="claw_..."
+#   export TICKATLAS_API_KEY="tk_..."
 client = TickAtlas()
 ```
 
@@ -368,7 +368,7 @@ mypy            # type-check (strict)
 calls write endpoints.
 
 ```bash
-RUN_INTEGRATION=1 TICKATLAS_API_KEY="claw_..." pytest tests/test_integration.py
+RUN_INTEGRATION=1 TICKATLAS_API_KEY="tk_..." pytest tests/test_integration.py
 ```
 
 ## License

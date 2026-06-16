@@ -36,7 +36,7 @@ If neither is present, the constructor throws a `TickAtlasConfigError`.
 import { TickAtlas } from "tickatlas";
 
 // Explicit key
-const client = new TickAtlas({ apiKey: "claw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" });
+const client = new TickAtlas({ apiKey: "tk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" });
 
 // …or rely on the TICKATLAS_API_KEY env var
 const client2 = new TickAtlas();
@@ -339,7 +339,7 @@ npm test           # vitest (unit tests, fully mocked — no network)
 The unit suite mocks `fetch` and never touches the network. There is a separate, **read-only** integration suite that is **skipped** unless both `RUN_INTEGRATION=1` and `TICKATLAS_API_KEY` are set:
 
 ```bash
-RUN_INTEGRATION=1 TICKATLAS_API_KEY=claw_xxx npm run test:integration
+RUN_INTEGRATION=1 TICKATLAS_API_KEY=tk_xxx npm run test:integration
 ```
 
 It never exercises the write endpoint (`saveLayout`). Please don't commit API keys.

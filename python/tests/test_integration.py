@@ -10,7 +10,7 @@ write endpoint (``save_layout`` / ``PUT /monitor/layout``).
 
 Run them explicitly with::
 
-    RUN_INTEGRATION=1 TICKATLAS_API_KEY="claw_..." pytest tests/test_integration.py
+    RUN_INTEGRATION=1 TICKATLAS_API_KEY="tk_..." pytest tests/test_integration.py
 
 Set ``TICKATLAS_BASE_URL`` to target a staging deployment. A test symbol can be
 overridden with ``TICKATLAS_TEST_SYMBOL`` (default ``EURUSD``).

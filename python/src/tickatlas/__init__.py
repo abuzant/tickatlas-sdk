@@ -3,7 +3,7 @@
 Quickstart
 ----------
 >>> from tickatlas import TickAtlas
->>> client = TickAtlas(api_key="claw_...")   # or set TICKATLAS_API_KEY
+>>> client = TickAtlas(api_key="tk_...")   # or set TICKATLAS_API_KEY
 >>> quote = client.get_quote("EURUSD")
 >>> print(quote.bid, quote.ask)
 

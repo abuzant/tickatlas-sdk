@@ -6,7 +6,7 @@
 //
 // To run them:
 //
-//	RUN_INTEGRATION=1 TICKATLAS_API_KEY=claw_... go test -tags integration ./...
+//	RUN_INTEGRATION=1 TICKATLAS_API_KEY=tk_... go test -tags integration ./...
 //
 // They are skipped (not failed) unless RUN_INTEGRATION=1 and TICKATLAS_API_KEY
 // are both set. The write path (SaveLayout) is deliberately NOT exercised — it

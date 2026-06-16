@@ -46,11 +46,11 @@ If neither is present, `NewClient` returns an error.
 ```go
 // Explicit:
 client, err := tickatlas.NewClient(
-    tickatlas.WithAPIKey("claw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"),
+    tickatlas.WithAPIKey("tk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"),
 )
 
 // Or from the environment (recommended — never hardcode keys):
-//   export TICKATLAS_API_KEY="claw_..."
+//   export TICKATLAS_API_KEY="tk_..."
 client, err := tickatlas.NewClient()
 ```
 
@@ -75,7 +75,7 @@ self-hosted/staging deployments via `WithBaseURL(...)` or the
 
 ```go
 client, err := tickatlas.NewClient(
-    tickatlas.WithAPIKey("claw_..."),
+    tickatlas.WithAPIKey("tk_..."),
     tickatlas.WithBaseURL("https://staging.tickatlas.com/v1"),
     tickatlas.WithTimeout(15*time.Second),
     tickatlas.WithMaxRetries(5),
@@ -405,7 +405,7 @@ Integration tests run against the live API and are gated behind a build tag **an
 environment variables, so they never run by accident:
 
 ```bash
-RUN_INTEGRATION=1 TICKATLAS_API_KEY=claw_... go test -tags integration ./...
+RUN_INTEGRATION=1 TICKATLAS_API_KEY=tk_... go test -tags integration ./...
 ```
 
 They are read-only and skip (rather than fail) when the gate is not set. The write

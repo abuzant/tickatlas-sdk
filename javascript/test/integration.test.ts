@@ -7,7 +7,7 @@
  * calls the write endpoint (`saveLayout`).
  *
  * Run explicitly with:
- *   RUN_INTEGRATION=1 TICKATLAS_API_KEY=claw_xxx npm run test:integration
+ *   RUN_INTEGRATION=1 TICKATLAS_API_KEY=tk_xxx npm run test:integration
  */
 
 import { describe, it, expect, beforeAll } from "vitest";

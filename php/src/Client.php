@@ -55,7 +55,7 @@ use TickAtlas\Retry\Sleeper;
  * (Guzzle ClientInterface, for testing) and sleeper (Sleeper, for testing).
  *
  * @example
- *   $client = new \TickAtlas\Client('claw_xxx');
+ *   $client = new \TickAtlas\Client('tk_xxx');
  *   $quote  = $client->getQuote('EURUSD');
  *   echo $quote->bid;
  */

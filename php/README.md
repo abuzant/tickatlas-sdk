@@ -33,7 +33,7 @@ hardcode, log or commit your key** — the SDK never writes it to disk or logs.
 use TickAtlas\Client;
 
 // Explicit key
-$client = new Client('claw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+$client = new Client('tk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
 
 // Or rely on the environment (TICKATLAS_API_KEY)
 $client = new Client();
@@ -45,7 +45,7 @@ staging / self-hosted deployments):
 
 ```php
 $client = new Client(
-    apiKey: 'claw_...',
+    apiKey: 'tk_...',
     baseUrl: 'https://staging.tickatlas.com/v1',
 );
 ```
@@ -53,7 +53,7 @@ $client = new Client(
 ### Client options
 
 ```php
-$client = new Client('claw_...', null, [
+$client = new Client('tk_...', null, [
     'timeout'     => 30,    // per-request timeout in seconds
     'maxRetries'  => 3,     // retry attempts on 429/5xx/network (4 total tries)
     'backoffBase' => 0.5,   // base seconds for exponential backoff
@@ -326,7 +326,7 @@ integration suite is read-only and **gated**: it runs only when both
 `RUN_INTEGRATION=1` and `TICKATLAS_API_KEY` are set, and is skipped otherwise.
 
 ```bash
-RUN_INTEGRATION=1 TICKATLAS_API_KEY=claw_xxx composer test:integration
+RUN_INTEGRATION=1 TICKATLAS_API_KEY=tk_xxx composer test:integration
 ```
 
 Please keep changes covered by tests and consistent with the typed-model /

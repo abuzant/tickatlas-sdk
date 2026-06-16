@@ -19,7 +19,7 @@ use TickAtlas\Model\SymbolList;
  * exercised here). Do NOT run these as part of the normal unit suite.
  *
  * Example:
- *   RUN_INTEGRATION=1 TICKATLAS_API_KEY=claw_xxx vendor/bin/phpunit --testsuite integration
+ *   RUN_INTEGRATION=1 TICKATLAS_API_KEY=tk_xxx vendor/bin/phpunit --testsuite integration
  */
 final class LiveApiTest extends TestCase
 {

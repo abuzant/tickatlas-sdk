@@ -31,14 +31,14 @@ All four cover **every one of the 21 public `/v1` endpoints** (see
 ## Authentication
 
 Every SDK authenticates with an API key sent as the `X-API-Key` header. Get a key
-from your [TickAtlas dashboard](https://tickatlas.com/dashboard/keys).
+from your [TickAtlas dashboard](https://tickatlas.com/dashboard).
 
 Provide it explicitly, or set the environment variable **`TICKATLAS_API_KEY`** (the
 default every SDK reads). The base URL defaults to `https://tickatlas.com/v1` and is
 overridable via constructor option or `TICKATLAS_BASE_URL`.
 
 ```bash
-export TICKATLAS_API_KEY="claw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+export TICKATLAS_API_KEY="tk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 No SDK ever logs, prints, or persists your key.
@@ -141,7 +141,7 @@ cd php && composer install && composer test
 cd go && go test ./...
 
 # Live integration (any language), once you have a key:
-export TICKATLAS_API_KEY="claw_..." RUN_INTEGRATION=1
+export TICKATLAS_API_KEY="tk_..." RUN_INTEGRATION=1
 ```
 
 ---

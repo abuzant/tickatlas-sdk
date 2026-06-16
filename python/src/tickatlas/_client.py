@@ -67,7 +67,7 @@ class TickAtlas(_ClientBase):
     Examples
     --------
     >>> from tickatlas import TickAtlas
-    >>> client = TickAtlas(api_key="claw_...")          # or TICKATLAS_API_KEY env
+    >>> client = TickAtlas(api_key="tk_...")          # or TICKATLAS_API_KEY env
     >>> quote = client.get_quote("EURUSD")
     >>> quote.bid, quote.ask
     (1.16404, 1.16422)

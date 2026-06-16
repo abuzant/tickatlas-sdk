@@ -10,7 +10,7 @@
 //
 // # Quick start
 //
-//	client, err := tickatlas.NewClient(tickatlas.WithAPIKey("claw_..."))
+//	client, err := tickatlas.NewClient(tickatlas.WithAPIKey("tk_..."))
 //	if err != nil {
 //		log.Fatal(err)
 //	}
