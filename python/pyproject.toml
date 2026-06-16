@@ -50,9 +50,9 @@ dev = [
 [project.urls]
 Homepage = "https://tickatlas.com"
 Documentation = "https://tickatlas.com/docs"
-Repository = "https://github.com/tickatlas/tickatlas-sdk"
-Changelog = "https://github.com/tickatlas/tickatlas-sdk/blob/main/python/CHANGELOG.md"
-"Bug Tracker" = "https://github.com/tickatlas/tickatlas-sdk/issues"
+Repository = "https://github.com/abuzant/tickatlas-sdk"
+Changelog = "https://github.com/abuzant/tickatlas-sdk/blob/main/python/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/abuzant/tickatlas-sdk/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/tickatlas"]

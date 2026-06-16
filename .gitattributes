@@ -1,0 +1,9 @@
+# Packagist/Composer downloads a GitHub archive of this monorepo for the
+# `tickatlas/php-sdk` package (composer.json lives at the repo root). Strip the
+# non-PHP SDKs and CI from that archive so `composer require tickatlas/php-sdk`
+# pulls only the PHP SDK — not the Python/JS/Go sources.
+/python export-ignore
+/javascript export-ignore
+/go export-ignore
+/.github export-ignore
+.gitattributes export-ignore
