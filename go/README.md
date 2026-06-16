@@ -1,6 +1,6 @@
 # TickAtlas Go SDK
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/tickatlas/tickatlas-sdk/go.svg)](https://pkg.go.dev/github.com/tickatlas/tickatlas-sdk/go)
+[![Go Reference](https://pkg.go.dev/badge/github.com/abuzant/tickatlas-sdk/go.svg)](https://pkg.go.dev/github.com/abuzant/tickatlas-sdk/go)
 [![Go 1.21+](https://img.shields.io/badge/go-1.21%2B-00ADD8.svg)](https://go.dev/dl/)
 
 Official Go SDK for the [TickAtlas](https://tickatlas.com) market-data API —
@@ -23,14 +23,14 @@ calendar across forex, metals, commodities, indices, crypto, and stocks.
 ## Installation
 
 ```bash
-go get github.com/tickatlas/tickatlas-sdk/go
+go get github.com/abuzant/tickatlas-sdk/go
 ```
 
 Requires Go 1.21+. The import path is the module path; the package name is
 `tickatlas`:
 
 ```go
-import tickatlas "github.com/tickatlas/tickatlas-sdk/go"
+import tickatlas "github.com/abuzant/tickatlas-sdk/go"
 ```
 
 ## Authentication
@@ -92,7 +92,7 @@ import (
     "fmt"
     "log"
 
-    tickatlas "github.com/tickatlas/tickatlas-sdk/go"
+    tickatlas "github.com/abuzant/tickatlas-sdk/go"
 )
 
 func main() {
@@ -250,7 +250,7 @@ cal, _ := client.Calendar(ctx, &tickatlas.CalendarParams{
     NextHours:  ptr(24),
 })
 fmt.Println(cal.Count)
-// Note: event datetimes are naive UTC (no "Z" suffix); treat them as UTC.
+// Note: event datetimes are ISO 8601 with a +00:00 UTC offset.
 ```
 
 ### Account & layout

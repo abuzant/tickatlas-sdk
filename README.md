@@ -5,7 +5,7 @@ real-time and historical data for forex, commodities, indices, crypto, and equit
 quotes, OHLC candles, tick data, 30+ technical indicators, market-bias summaries,
 currency-strength heatmaps, spread analytics, and an economic calendar.
 
-> **Intended GitHub repo:** `tickatlas/tickatlas-sdk` (this monorepo). Each language
+> **Intended GitHub repo:** `abuzant/tickatlas-sdk` (this monorepo). Each language
 > package is independently publishable.
 
 This is a **monorepo**: one package per language, each idiomatic for its ecosystem
@@ -21,7 +21,7 @@ contract this repo was built and tested against.
 | **Python** | `tickatlas` (PyPI) | `pip install tickatlas` | [`python/`](python/) | [README](python/README.md) |
 | **JavaScript / TypeScript** | `tickatlas` (npm) | `npm install tickatlas` | [`javascript/`](javascript/) | [README](javascript/README.md) |
 | **PHP** | `tickatlas/php-sdk` (Packagist) | `composer require tickatlas/php-sdk` | [`php/`](php/) | [README](php/README.md) |
-| **Go** | `github.com/tickatlas/tickatlas-sdk/go` | `go get github.com/tickatlas/tickatlas-sdk/go` | [`go/`](go/) | [README](go/README.md) |
+| **Go** | `github.com/abuzant/tickatlas-sdk/go` | `go get github.com/abuzant/tickatlas-sdk/go` | [`go/`](go/) | [README](go/README.md) |
 
 All four cover **every one of the 21 public `/v1` endpoints** (see
 [§ Endpoint coverage](#endpoint-coverage)).

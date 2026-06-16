@@ -48,4 +48,4 @@ Initial public release.
 - `save_layout` is the only write method; it is documented as advanced and is
   excluded from automated write-path integration tests.
 
-[0.1.0]: https://github.com/tickatlas/tickatlas-sdk/releases/tag/python-v0.1.0
+[0.1.0]: https://github.com/abuzant/tickatlas-sdk/releases/tag/python-v0.1.0

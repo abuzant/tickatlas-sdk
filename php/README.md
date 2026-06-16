@@ -230,8 +230,7 @@ $client->getCalendar([
 ]);
 ```
 
-> Calendar `datetime` values are naive UTC with **no** timezone suffix — treat
-> them as UTC.
+> Calendar `datetime` values are ISO 8601 with a **`+00:00`** UTC offset.
 
 ### Account & dashboard layout
 

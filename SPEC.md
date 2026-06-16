@@ -1,11 +1,8 @@
 # TickAtlas API — Client SDK Contract
 
-> **This is the authoritative contract every TickAtlas SDK in this repo is built
-> against.** It was produced by reading the live API reference docs **and** the
-> running server's source code, then cross-checking against a full live endpoint
-> test (90/90 cases) performed on the production stack. Where the published docs
-> and the implementation disagreed, the **implementation/live behaviour wins** and
-> the disagreement is recorded in [§12 Findings](#12-findings--published-docs-vs-live-api).
+> **This is the authoritative contract every TickAtlas SDK in this repo implements.**
+> It describes the live TickAtlas `v1` API; the running implementation is the
+> source of truth.
 
 | | |
 |---|---|
@@ -41,8 +38,8 @@ Authenticate **every** request with an API key in the `X-API-Key` header:
 X-API-Key: tk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-- Keys are opaque strings. New keys are prefixed `tk_`; pre-rebrand `claw_` keys
-  remain valid (legacy) and are also accepted. SDKs MUST treat the key as an opaque string — never parse
+- Keys are opaque strings prefixed `tk_` (legacy `claw_` keys are also accepted).
+  SDKs MUST treat the key as an opaque string — never parse
   or validate its format client-side.
 - The key is read, in priority order, from: (1) an explicit constructor argument,
   then (2) the environment variable **`TICKATLAS_API_KEY`**.
@@ -412,7 +409,7 @@ historical: `403 PLAN_UPGRADE_REQUIRED`, `404 INDICATOR_NOT_FOUND`, the date err
 `data`: `{ indicator, timeframe, filter: { min: number|null, max: number|null },
 results: { symbol: str, value: number|null, bid: number|null }[],
 total_matches: int, pagination: { offset, limit, total, has_more }, updated_at: int }`
-Errors: `400 INVALID_SORT`, `400 INVALID_TIMEFRAME` (timeframe now validated, consistent with the other indicator endpoints).
+Errors: `400 INVALID_SORT`, `400 INVALID_TIMEFRAME`.
 
 ### 7.13 `GET /summary` — market-bias summary · scope: `indicators`
 
@@ -570,46 +567,3 @@ this explicitly.
 
 SDKs start at **0.1.0** (SemVer). The API itself is `v1`. Breaking changes to the
 API surface bump the SDK minor version pre-1.0.
-
----
-
-## 12. Findings — published docs vs live API
-
-Recorded during contract extraction; **the SDKs follow the live/implementation
-column.** These are also useful pre-launch fixes for the TickAtlas docs team.
-
-> **Status — RESOLVED 2026-06-15.** The published docs (`docs/api/*`) and the Astro
-> site (`public-folder/`) have been reconciled to match the live API for every row
-> below (F1–F20); a live guard (`tests/docs-reconciliation/`) now enforces it. F18
-> was additionally corrected here: calendar timestamps are ISO 8601 with a
-> **`+00:00`** offset (verified live), not naive/no-suffix. Two contract items were
-> also actioned on the API side: screener now validates `timeframe` (§7.12) and new
-> keys mint `tk_` with `claw_` kept valid (§2). SDKs unchanged — they already
-> followed the live column.
-
-| # | Area | Published docs say | Live API actually does | SDK follows |
-|---|------|--------------------|------------------------|-------------|
-| F1 | Error envelope (`error-codes.md`) | flat `{error, code, details}`, code `RATE_LIMITED` | nested `{success,error:{code,message,…}}`, code `RATE_LIMIT_EXCEEDED` | nested |
-| F2 | Screener params (README/some docs) | `min=` / `max=` | `min_val=` / `max_val=` (others silently ignored) | `min_val`/`max_val` |
-| F3 | OHLC response (`ohlc.md`) | array `bars`, `first_time`/`last_time`, float volume | array `candles`, `retention`, int volume | `candles`/int |
-| F4 | Bulk quotes (`quotes.md`) | examples use `GET /v1/quotes` w/ query params, include a `volume` field | `POST /v1/quotes` JSON body; no `volume` field | POST/no-volume |
-| F5 | Ticks (`ticks.md`) | `limit` param, `spread_pips` field, 422 on over-range, "Starter+" | no `limit`, no `spread_pips`, `400 RANGE_TOO_LARGE`/`INVALID_RANGE`, **pro/enterprise** | live |
-| F6 | Indicator names (`indicators.md`) | `Parabolic_SAR`, `Tick_Volume`, `RSI_9`, `EMA_200` | `SAR`, `Volumes`; no RSI_9/EMA_200 | live catalogue |
-| F7 | `/indicator` & `/indicators` fields | `timestamp` ISO field | `updated_at` (epoch) + `server_time`; `/indicators` adds `ohlcv,bid,ask,count` | live |
-| F8 | `/indicators/list` shape | array of `{name,display_name,…}` + `total` | dict keyed by category → {name: description} + `timeframes` | live |
-| F9 | `/multi` payload key | `results` + `timestamp` | `data` + `not_found` + `updated_at` (+`mode/from/to` historical) | live |
-| F10 | Screener result fields | `count`, no `bid` | `total_matches`, includes `bid`, always `filter:{min,max}` | live |
-| F11 | Screener `sort` default | `desc` | `asc` | `asc` |
-| F12 | `timeframe` required? (`indicators.md`) | marked required | optional, default `H1` everywhere | optional |
-| F13 | Heatmap timeframes | mentions `M15` | valid set is `H1,H4,D1,W1` (no M15) | live |
-| F14 | Spread response (`spread.md`) | `optimal_times`, `cost_analysis`, `percentiles`, alt field names | only `current`,`statistics`,`by_session` (field names per §7.14) | live |
-| F15 | `/spread/compare` | undocumented | exists; params/shape per §7.15 | implemented |
-| F16 | `/monitor/*` | (was) undocumented | `account`,`layout` (GET/PUT) exist; shapes per §7.19–21 | implemented |
-| F17 | `monitor/account` fields | (task brief expected email/rate_limit/monthly) | only `name, plan, prepaid_credits, daily_quota, daily_used` | live |
-| F18 | Calendar timestamps | trailing `Z` | ISO 8601 with **`+00:00`** UTC offset (verified live 2026-06-15) | live |
-| F19 | Datetime error codes (`indicator-history.md`) | `INVALID_FROM_TIME`/`FROM_TIME_TOO_OLD` | `INVALID_DATETIME` / `OUTSIDE_RETENTION` | live |
-| F20 | `/health` (verified live 2026-06-15) | implied `/v1/health`, `components` as `{redis, postgres}` strings | served at **origin** `/health` (not `/v1`), **no** envelope, `components` are nested `{status}` objects | origin + nested + envelope-bypass |
-
-> All of the above were **functionally healthy** in the live test (no 5xx; every
-> happy path returned `200` with the correct envelope). The findings are docs
-> drift + a couple of validation niceties, not outages.

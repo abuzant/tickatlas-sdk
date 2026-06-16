@@ -54,4 +54,4 @@ authoritative SDK contract (`SPEC.md`).
 - `saveLayout` (`PUT /monitor/layout`) is the only mutating method and is
   documented as advanced/optional.
 
-[0.1.0]: https://github.com/tickatlas/tickatlas-sdk/releases/tag/js-v0.1.0
+[0.1.0]: https://github.com/abuzant/tickatlas-sdk/releases/tag/js-v0.1.0

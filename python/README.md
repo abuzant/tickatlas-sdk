@@ -220,7 +220,7 @@ for ev in calendar.events:
     print(ev.datetime, ev.currency, ev.event, ev.impact)
 ```
 
-> Calendar `datetime` values are naive UTC (no `Z` suffix); treat them as UTC.
+> Calendar `datetime` values are ISO 8601 with a +00:00 UTC offset; treat them as UTC.
 
 ### Account and dashboard layout
 
@@ -350,7 +350,7 @@ client = TickAtlas(http_client=http)  # the SDK will not close a client you pass
 ## Contributing / development
 
 ```bash
-git clone https://github.com/tickatlas/tickatlas-sdk
+git clone https://github.com/abuzant/tickatlas-sdk
 cd tickatlas-sdk/python
 
 python -m venv .venv

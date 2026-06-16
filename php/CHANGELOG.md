@@ -39,4 +39,4 @@ Initial release.
 - Full PHPUnit unit-test suite (Guzzle `MockHandler`, no network) and a gated,
   read-only integration test suite.
 
-[0.1.0]: https://github.com/tickatlas/php-sdk/releases/tag/v0.1.0
+[0.1.0]: https://github.com/abuzant/tickatlas-sdk/releases/tag/v0.1.0

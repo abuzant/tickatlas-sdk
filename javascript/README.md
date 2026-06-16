@@ -327,7 +327,7 @@ Each response also carries `X-RateLimit-Limit` / `-Remaining` / `-Reset` and an 
 ## Contributing
 
 ```bash
-git clone https://github.com/tickatlas/tickatlas-sdk.git
+git clone https://github.com/abuzant/tickatlas-sdk.git
 cd tickatlas-sdk/javascript
 
 npm install
